@@ -1790,7 +1790,8 @@ JavaScriptCompiler.prototype = {
   // This operation pops off a context, invokes a partial with that context,
   // and pushes the result of the invocation back.
   invokePartial: function(name) {
-    var params = [this.nameLookup('partials', name, 'partial'), "'" + name + "'", this.popStack(), "helpers", "partials"];
+    var partial = this.options.partialResolver ? this.options.partialResolver(this, name) : this.nameLookup('partials', name, 'partial');
+    var params = [partial, "'" + name + "'", this.popStack(), "helpers", "partials"];
 
     if (this.options.data) {
       params.push("data");
