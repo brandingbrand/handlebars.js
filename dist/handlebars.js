@@ -1796,11 +1796,19 @@ JavaScriptCompiler.prototype = {
   // This operation pops off a context, invokes a partial with that context,
   // and pushes the result of the invocation back.
   invokePartial: function(name) {
-    var partial = this.options.partialResolver ? this.options.partialResolver(this, name) : this.nameLookup('partials', name, 'partial');
+    var partial = this.options.partialResolver ? this.options.partialResolver(this, name, this.options.partialMode) : this.nameLookup('partials', name, 'partial');
     var params = [partial, "'" + name + "'", this.popStack(), "helpers", "partials"];
 
     if (this.options.data) {
       params.push("data");
+    }
+
+    if(this.options.partialResolver) {
+      params.push(this.options.partialResolver);
+    }
+
+    if(this.options.partialMode) {
+      params.push("'" + this.options.partialMode + "'");
     }
 
     this.context.aliases.self = "this";
@@ -2240,7 +2248,7 @@ Handlebars.VM = {
     return program;
   },
   noop: function() { return ""; },
-  invokePartial: function(partial, name, context, helpers, partials, data) {
+  invokePartial: function(partial, name, context, helpers, partials, data, resolver, mode) {
     var options = { helpers: helpers, partials: partials, data: data };
 
     if(partial === undefined) {
@@ -2250,7 +2258,7 @@ Handlebars.VM = {
     } else if (!Handlebars.compile) {
       throw new Handlebars.Exception("The partial " + name + " could not be compiled when running in runtime-only mode");
     } else {
-      partials[name] = Handlebars.compile(partial, {data: data !== undefined});
+      partials[name] = Handlebars.compile(partial, {partialResolver: resolver, partialMode: mode, data: data !== undefined});
       return partials[name](context, options);
     }
   }
